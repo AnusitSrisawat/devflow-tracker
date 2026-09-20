@@ -43,7 +43,6 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-slate-50/50 p-6 md:p-10">
       <div className="max-w-6xl mx-auto space-y-8">
-        
         {/* Header ส่วนหัว */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -70,7 +69,9 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-slate-400 mt-1">+2 รายการใหม่สัปดาห์นี้</p>
+              <p className="text-xs text-slate-400 mt-1">
+                +2 รายการใหม่สัปดาห์นี้
+              </p>
             </CardContent>
           </Card>
 
@@ -143,8 +144,8 @@ export default function DashboardPage() {
                           ticket.priority === "HIGH"
                             ? "border-red-500 text-red-600 bg-red-50"
                             : ticket.priority === "MEDIUM"
-                            ? "border-amber-500 text-amber-600 bg-amber-50"
-                            : "border-slate-300 text-slate-600"
+                              ? "border-amber-500 text-amber-600 bg-amber-50"
+                              : "border-slate-300 text-slate-600"
                         }
                       >
                         {ticket.priority}
@@ -156,14 +157,16 @@ export default function DashboardPage() {
                           ticket.status === "RESOLVED"
                             ? "bg-emerald-600"
                             : ticket.status === "IN_PROGRESS"
-                            ? "bg-amber-600"
-                            : "bg-blue-600"
+                              ? "bg-amber-600"
+                              : "bg-blue-600"
                         }
                       >
                         {ticket.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-slate-600">{ticket.author}</TableCell>
+                    <TableCell className="text-slate-600">
+                      {ticket.author}
+                    </TableCell>
                     <TableCell className="text-right text-slate-500 text-xs font-mono">
                       {ticket.createdAt}
                     </TableCell>
@@ -173,7 +176,6 @@ export default function DashboardPage() {
             </Table>
           </CardContent>
         </Card>
-
       </div>
     </main>
   );
