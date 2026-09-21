@@ -1,6 +1,8 @@
+"use client";
+
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -10,9 +12,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { AlertCircle, CheckCircle2, Clock, Plus, Search } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CreateTicketDialog, NewTicketData } from "@/components/create-ticket-dialog";
+import { AlertCircle, CheckCircle2, Clock, Search } from "lucide-react";
 
-const mockTickets = [
+// Mock Data เริ่มต้น
+const initialTickets = [
   {
     id: "DEV-101",
     title: "ระบบ Login ผ่าน Google ไม่ตอบสนองบนมือถือ",
@@ -40,9 +51,43 @@ const mockTickets = [
 ];
 
 export default function DashboardPage() {
+  const [tickets, setTickets] = useState(initialTickets);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
+
+  // ฟังก์ชันเพิ่ม Ticket ใหม่เข้าไปใน State
+  const handleCreateTicket = (data: NewTicketData) => {
+    const newId = `DEV-${100 + tickets.length + 1}`;
+    const newTicket = {
+      id: newId,
+      title: data.title,
+      priority: data.priority,
+      status: "OPEN",
+      author: "You (Staff)",
+      createdAt: new Date().toISOString().split("T")[0],
+    };
+
+    // นำ Ticket ใหม่ใส่ไว้หน้าสุดของ Array เพื่อให้โชว์บนสุดของตาราง
+    setTickets((prev) => [newTicket, ...prev]);
+  };
+
+  // ตัวกรองตาราง
+  const filteredTickets = tickets.filter((ticket) => {
+    const matchesSearch =
+      ticket.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      ticket.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "ALL" || ticket.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const totalCount = tickets.length;
+  const inProgressCount = tickets.filter((t) => t.status === "IN_PROGRESS").length;
+  const resolvedCount = tickets.filter((t) => t.status === "RESOLVED").length;
+
   return (
-    <main className="min-h-screen bg-slate-50/50 p-6 md:p-10">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <main className="min-h-screen bg-gray-950 p-6 md:p-10">
+      <div className="max-w-6xl mx-auto space-y-8 bg-gray-300 p-5 rounded-md">
+        
         {/* Header ส่วนหัว */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -53,66 +98,69 @@ export default function DashboardPage() {
               ระบบติดตามข้อผิดพลาดและบริการจัดการเคส IT ภายในทีม
             </p>
           </div>
-          <Button className="flex items-center gap-2">
-            <Plus className="w-4 h-4" /> สร้าง Ticket ใหม่
-          </Button>
+          {/* ส่งฟังก์ชัน handleCreateTicket เข้าไปใน Dialog */}
+          <CreateTicketDialog onTicketCreated={handleCreateTicket} />
         </div>
 
-        {/* สรุปสถานะ 3 การ์ด */}
+        {/* สรุปสถานะ 3 การ์ด (ตัวเลขจะขยับขึ้นทันทีที่มีตั๋วใหม่) */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">
-                Ticket ทั้งหมด
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-600">Ticket ทั้งหมด</CardTitle>
               <AlertCircle className="w-4 h-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
-              <p className="text-xs text-slate-400 mt-1">
-                +2 รายการใหม่สัปดาห์นี้
-              </p>
+              <div className="text-2xl font-bold">{totalCount}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">
-                กำลังดำเนินการ (In Progress)
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-600">กำลังดำเนินการ (In Progress)</CardTitle>
               <Clock className="w-4 h-4 text-amber-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">5</div>
-              <p className="text-xs text-slate-400 mt-1">ทีมกำลังตรวจสอบ</p>
+              <div className="text-2xl font-bold">{inProgressCount}</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-slate-600">
-                แก้ไขเสร็จสิ้น (Resolved)
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-600">แก้ไขเสร็จสิ้น (Resolved)</CardTitle>
               <CheckCircle2 className="w-4 h-4 text-emerald-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">7</div>
-              <p className="text-xs text-slate-400 mt-1">ปิดเคสเรียบร้อย</p>
+              <div className="text-2xl font-bold">{resolvedCount}</div>
             </CardContent>
           </Card>
         </div>
 
-        {/* ช่อง Search & ตารางข้อมูล */}
+        {/* ตารางข้อมูล */}
         <Card>
           <CardHeader>
             <div className="flex flex-col sm:flex-row justify-between gap-4">
               <CardTitle className="text-lg">รายการ Incident & Tasks</CardTitle>
-              <div className="relative w-full sm:w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-                <Input
-                  placeholder="ค้นหาชื่อเรื่อง..."
-                  className="pl-8 text-sm"
-                />
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                  <Input
+                    placeholder="ค้นหา ID หรือหัวข้อ..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8 text-sm"
+                  />
+                </div>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full sm:w-[160px]">
+                    <SelectValue placeholder="กรองตามสถานะ" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="ALL">สถานะทั้งหมด</SelectItem>
+                    <SelectItem value="OPEN">OPEN</SelectItem>
+                    <SelectItem value="IN_PROGRESS">IN_PROGRESS</SelectItem>
+                    <SelectItem value="RESOLVED">RESOLVED</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardHeader>
@@ -129,53 +177,54 @@ export default function DashboardPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {mockTickets.map((ticket) => (
-                  <TableRow key={ticket.id}>
-                    <TableCell className="font-mono text-xs text-slate-500">
-                      {ticket.id}
-                    </TableCell>
-                    <TableCell className="font-medium text-slate-900">
-                      {ticket.title}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={
-                          ticket.priority === "HIGH"
-                            ? "border-red-500 text-red-600 bg-red-50"
-                            : ticket.priority === "MEDIUM"
+                {filteredTickets.length > 0 ? (
+                  filteredTickets.map((ticket) => (
+                    <TableRow key={ticket.id}>
+                      <TableCell className="font-mono text-xs text-slate-500">{ticket.id}</TableCell>
+                      <TableCell className="font-medium text-slate-900">{ticket.title}</TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={
+                            ticket.priority === "HIGH"
+                              ? "border-red-500 text-red-600 bg-red-50"
+                              : ticket.priority === "MEDIUM"
                               ? "border-amber-500 text-amber-600 bg-amber-50"
                               : "border-slate-300 text-slate-600"
-                        }
-                      >
-                        {ticket.priority}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        className={
-                          ticket.status === "RESOLVED"
-                            ? "bg-emerald-600"
-                            : ticket.status === "IN_PROGRESS"
+                          }
+                        >
+                          {ticket.priority}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={
+                            ticket.status === "RESOLVED"
+                              ? "bg-emerald-600"
+                              : ticket.status === "IN_PROGRESS"
                               ? "bg-amber-600"
                               : "bg-blue-600"
-                        }
-                      >
-                        {ticket.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-slate-600">
-                      {ticket.author}
-                    </TableCell>
-                    <TableCell className="text-right text-slate-500 text-xs font-mono">
-                      {ticket.createdAt}
+                          }
+                        >
+                          {ticket.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-slate-600">{ticket.author}</TableCell>
+                      <TableCell className="text-right text-slate-500 text-xs font-mono">{ticket.createdAt}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-slate-400 text-sm">
+                      ไม่พบข้อมูล Ticket ที่ตรงกับเงื่อนไข
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </CardContent>
         </Card>
+
       </div>
     </main>
   );
